@@ -96,6 +96,7 @@ button {
     <label><input type="checkbox" class="charType" value="numbers"> 純數字</label>
     <label><input type="checkbox" class="charType" value="uppercase"> 大寫字母(A-Z)</label>
     <label><input type="checkbox" class="charType" value="lowercase"> 小寫字母(a-z)</label>
+    <label><input type="checkbox" class="charType" value="symbols"> 符號(!@#$%^&*)</label>
 
     <div class="button-group">
         <button id="generateBtn">生成密碼</button>
@@ -111,11 +112,13 @@ function generatePassword(length, types, prefix, existingSet) {
     const numberChars = "0123456789";
     const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const lowerChars = "abcdefghijklmnopqrstuvwxyz";
+    const symbolChars = "!@#$%^&*()_+-=[]{}|;:,.<>/?";
 
     let chars = "";
     if (types.includes("numbers")) chars += numberChars;
     if (types.includes("uppercase")) chars += upperChars;
     if (types.includes("lowercase")) chars += lowerChars;
+    if (types.includes("symbols")) chars += symbolChars;
 
     if (!chars) return "";
 
@@ -143,10 +146,15 @@ document.getElementById("generateBtn").addEventListener("click", () => {
         return;
     }
 
-    const numberChars = selectedTypes.includes("numbers") ? "0123456789" : "";
-    const upperChars = selectedTypes.includes("uppercase") ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "";
-    const lowerChars = selectedTypes.includes("lowercase") ? "abcdefghijklmnopqrstuvwxyz" : "";
-    const chars = numberChars + upperChars + lowerChars;
+    const charsMap = {
+        numbers: "0123456789",
+        uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        lowercase: "abcdefghijklmnopqrstuvwxyz",
+        symbols: "!@#$%^&*()_+-=[]{}|;:,.<>/?"
+    };
+
+    let chars = "";
+    selectedTypes.forEach(t => chars += charsMap[t]);
 
     const maxPossible = Math.pow(chars.length, length);
     if (count > maxPossible) {
