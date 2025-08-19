@@ -66,32 +66,14 @@ button {
     transition: all 0.2s;
 }
 
-#generateBtn {
-    background-color: #4caf50;
-    color: white;
-}
+#generateBtn { background-color: #4caf50; color: white; }
+#generateBtn:hover { background-color: #45a049; }
 
-#generateBtn:hover {
-    background-color: #45a049;
-}
+#copyBtn { background-color: #2196f3; color: white; }
+#copyBtn:hover { background-color: #1976d2; }
 
-#copyBtn {
-    background-color: #2196f3;
-    color: white;
-}
-
-#copyBtn:hover {
-    background-color: #1976d2;
-}
-
-#downloadBtn {
-    background-color: #ff9800;
-    color: white;
-}
-
-#downloadBtn:hover {
-    background-color: #fb8c00;
-}
+#downloadBtn { background-color: #ff9800; color: white; }
+#downloadBtn:hover { background-color: #fb8c00; }
 
 .button-group {
     display: flex;
@@ -138,11 +120,14 @@ function generatePassword(length, types, prefix, existingSet) {
     if (!chars) return "";
 
     let pwd;
+    let attempts = 0;
     do {
         pwd = prefix;
         for (let i = 0; i < length; i++) {
             pwd += chars.charAt(Math.floor(Math.random() * chars.length));
         }
+        attempts++;
+        if (attempts > 1000) return null; // 避免無限循環
     } while (existingSet.has(pwd));
     return pwd;
 }
@@ -158,8 +143,14 @@ document.getElementById("generateBtn").addEventListener("click", () => {
         return;
     }
 
-    if (count > 90000) {
-        alert("生成組數不能超過 90000");
+    const numberChars = selectedTypes.includes("numbers") ? "0123456789" : "";
+    const upperChars = selectedTypes.includes("uppercase") ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "";
+    const lowerChars = selectedTypes.includes("lowercase") ? "abcdefghijklmnopqrstuvwxyz" : "";
+    const chars = numberChars + upperChars + lowerChars;
+
+    const maxPossible = Math.pow(chars.length, length);
+    if (count > maxPossible) {
+        alert("設定無法生成指定數量的密碼，請調整長度或類型。");
         return;
     }
 
@@ -168,6 +159,10 @@ document.getElementById("generateBtn").addEventListener("click", () => {
 
     for (let i = 0; i < count; i++) {
         const pwd = generatePassword(length, selectedTypes, prefix, existing);
+        if (!pwd) {
+            alert("無法生成更多唯一密碼，請調整設定。");
+            break;
+        }
         existing.add(pwd);
         passwords.push(pwd);
     }
