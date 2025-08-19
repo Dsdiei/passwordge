@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>密碼生成器</title>
+<style>
+/* ===== 精簡時尚風 ===== */
+body {
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background-color: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    color: #333;
+}
+
+h2 {
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.container {
+    background-color: #fff;
+    padding: 25px 50px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 450px;
+}
+
+label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+}
+
+input[type="number"],
+input[type="text"],
+textarea {
+    width: 80%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: none;
+    font-family: monospace;
+    margin-top: 10px;
+    height: 180px;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px 5px 0 0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+#generateBtn {
+    background-color: #4caf50;
+    color: white;
+}
+
+#generateBtn:hover {
+    background-color: #45a049;
+}
+
+#copyBtn {
+    background-color: #2196f3;
+    color: white;
+}
+
+#copyBtn:hover {
+    background-color: #1976d2;
+}
+
+#downloadBtn {
+    background-color: #ff9800;
+    color: white;
+}
+
+#downloadBtn:hover {
+    background-color: #fb8c00;
+}
+
+.button-group {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+    gap: 10px;
+}
+</style>
+</head>
+<body>
+
+<h2>密碼生成器</h2>
+
+<div class="container">
+    <label>生成組數: <input type="number" id="count" value="5" min="1"></label>
+    <label>密碼長度: <input type="number" id="length" value="8" min="1"></label>
+    <label>前綴(可選): <input type="text" id="prefix"></label>
+
+    <p>密碼類型（可多選）:</p>
+    <label><input type="checkbox" class="charType" value="numbers"> 純數字</label>
+    <label><input type="checkbox" class="charType" value="uppercase"> 大寫字母(A-Z)</label>
+    <label><input type="checkbox" class="charType" value="lowercase"> 小寫字母(a-z)</label>
+
+    <div class="button-group">
+        <button id="generateBtn">生成密碼</button>
+        <button id="copyBtn">複製到剪貼簿</button>
+        <button id="downloadBtn">下載 .txt</button>
+    </div>
+
+    <textarea id="output" readonly></textarea>
+</div>
+
+<script>
+function generatePassword(length, types, prefix, existingSet) {
+    const numberChars = "0123456789";
+    const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowerChars = "abcdefghijklmnopqrstuvwxyz";
+
+    let chars = "";
+    if (types.includes("numbers")) chars += numberChars;
+    if (types.includes("uppercase")) chars += upperChars;
+    if (types.includes("lowercase")) chars += lowerChars;
+
+    if (!chars) return "";
+
+    let pwd;
+    do {
+        pwd = prefix;
+        for (let i = 0; i < length; i++) {
+            pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+    } while (existingSet.has(pwd));
+    return pwd;
+}
+
+document.getElementById("generateBtn").addEventListener("click", () => {
+    const count = parseInt(document.getElementById("count").value);
+    const length = parseInt(document.getElementById("length").value);
+    const prefix = document.getElementById("prefix").value || "";
+
+    const selectedTypes = Array.from(document.querySelectorAll(".charType:checked")).map(cb => cb.value);
+    if (selectedTypes.length === 0) {
+        alert("請至少選擇一種密碼類型！");
+        return;
+    }
+
+    if (count > 90000) {
+        alert("生成組數不能超過 90000");
+        return;
+    }
+
+    const existing = new Set();
+    const passwords = [];
+
+    for (let i = 0; i < count; i++) {
+        const pwd = generatePassword(length, selectedTypes, prefix, existing);
+        existing.add(pwd);
+        passwords.push(pwd);
+    }
+
+    document.getElementById("output").value = passwords.join("\n");
+});
+
+// 複製到剪貼簿
+document.getElementById("copyBtn").addEventListener("click", () => {
+    const output = document.getElementById("output");
+    if (!output.value) return;
+    output.select();
+    navigator.clipboard.writeText(output.value)
+        .then(() => alert("已複製到剪貼簿"))
+        .catch(() => alert("複製失敗"));
+});
+
+// 下載 .txt
+document.getElementById("downloadBtn").addEventListener("click", () => {
+    const output = document.getElementById("output").value;
+    if (!output) return;
+    const blob = new Blob([output], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "passwords.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+});
+</script>
+
+</body>
+</html>
